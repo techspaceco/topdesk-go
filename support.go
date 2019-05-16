@@ -7,9 +7,6 @@ package topdesk
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"net/http"
-	"path"
 	"time"
 )
 
@@ -17,8 +14,8 @@ type BranchIterator struct {
 	*ListIterator
 }
 
-func (c *Client) ListBranches(ctx context.Context) (*BranchIterator, error) {
-	it, err := c.list(ctx, "branches")
+func (rc *RestClient) ListBranches(ctx context.Context) (*BranchIterator, error) {
+	it, err := rc.list(ctx, "branches")
 	return &BranchIterator{it}, err
 }
 
@@ -32,37 +29,18 @@ func (i *BranchIterator) Branch() (*Branch, error) {
 	return i.client.GetBranch(i.ctx, response.ID)
 }
 
-func (c *Client) GetBranch(ctx context.Context, id string) (*Branch, error) {
-	uri := *c.endpoint
-	uri.Path = path.Join(uri.Path, fmt.Sprintf("branches/id/%s", id))
-
+func (rc *RestClient) GetBranch(ctx context.Context, id string) (*Branch, error) {
 	branch := &Branch{}
-	_, err := c.do(ctx, http.MethodGet, uri.String(), nil, branch)
+	err := rc.get(ctx, "branches", id, branch)
 	return branch, err
 }
 
-func (c *Client) SaveBranch(ctx context.Context, branch *Branch) (string, error) {
-	method := http.MethodPost
-	uri := *c.endpoint
-	uri.Path = path.Join(uri.Path, "branches")
-
-	if branch.ID != "" {
-		method = http.MethodPut
-		uri.Path = path.Join(uri.Path, fmt.Sprintf("id/%s", branch.ID))
+func (rc *RestClient) SaveBranch(ctx context.Context, branch *Branch) (string, error) {
+	response := *branch
+	if err := rc.save(ctx, "branches", branch.ID, branch, &response); err != nil {
+		return "", err
 	}
-
-	response := &Branch{}
-	status, err := c.do(ctx, method, uri.String(), branch, response)
-	if err != nil {
-		return "", err // TODO: Wrap.
-	}
-
-	switch status {
-	case http.StatusCreated, http.StatusOK:
-		return branch.ID, nil
-	default:
-		return "", fmt.Errorf("%s", http.StatusText(status))
-	}
+	return response.ID, nil
 }
 
 // Branch structure.
@@ -184,8 +162,8 @@ type CountryIterator struct {
 	*ListIterator
 }
 
-func (c *Client) ListCountries(ctx context.Context) (*CountryIterator, error) {
-	it, err := c.list(ctx, "countries")
+func (rc *RestClient) ListCountries(ctx context.Context) (*CountryIterator, error) {
+	it, err := rc.list(ctx, "countries")
 	return &CountryIterator{it}, err
 }
 
@@ -198,6 +176,21 @@ func (i *CountryIterator) Country() (*Country, error) {
 type Country struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type PeopleIterator struct {
+	*ListIterator
+}
+
+func (rc *RestClient) ListPeople(ctx context.Context) (*PeopleIterator, error) {
+	it, err := rc.list(ctx, "countries")
+	return &PeopleIterator{it}, err
+}
+
+func (i *PeopleIterator) Person() (*Person, error) {
+	person := &Person{}
+	err := i.decode(&person)
+	return person, err
 }
 
 type Person struct {
