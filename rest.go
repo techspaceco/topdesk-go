@@ -56,6 +56,7 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	req, _ := http.NewRequest(method, u.String(), bytes.NewReader(body))
 	req.Header.Add("Authorization", rc.authorization)
 	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 
 	debugging, _ := httputil.DumpRequest(req, true)
 	fmt.Printf("%s\n", debugging)

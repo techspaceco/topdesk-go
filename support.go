@@ -6,9 +6,12 @@ package topdesk
 
 import (
 	"context"
-	"encoding/json"
-	"time"
 )
+
+type BranchRef struct {
+	ID   string `json:"id"`
+	Name string `json:"name,omitempty"`
+}
 
 type BranchIterator struct {
 	*ListIterator
@@ -20,9 +23,7 @@ func (rc *RestClient) ListBranches(ctx context.Context) (*BranchIterator, error)
 }
 
 func (i *BranchIterator) Branch() (*Branch, error) {
-	response := struct {
-		ID string `json:"id"`
-	}{}
+	response := &BranchRef{}
 	if err := i.decode(&response); err != nil {
 		return nil, err // Wrap this bad boy.
 	}
@@ -43,24 +44,25 @@ func (rc *RestClient) SaveBranch(ctx context.Context, branch *Branch) (string, e
 	return response.ID, nil
 }
 
+func (b Branch) Ref() *BranchRef {
+	return &BranchRef{ID: b.ID}
+}
+
 // Branch structure.
 //
 // https://developers.topdesk.com/explorer/?page=supporting-files#/Branches/retrieveBranches
 type Branch struct {
-	ID                    string `json:"id"`
-	Name                  string `json:"name"`
-	Specification         string `json:"specification"`
-	ClientReferenceNumber string `json:"clientReferenceNumber"`
-	Phone                 string `json:"phone"`
-	Fax                   string `json:"fax"`
-	Email                 string `json:"email"`
-	Website               string `json:"website"`
-	BranchType            string `json:"branchType"`
-	HeadBranch            struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
-	} `json:"headBranch"`
-	Address struct {
+	ID                    string     `json:"id,omitempty"`
+	Name                  string     `json:"name"`
+	Specification         string     `json:"specification"`
+	ClientReferenceNumber string     `json:"clientReferenceNumber"`
+	Phone                 string     `json:"phone"`
+	Fax                   string     `json:"fax"`
+	Email                 string     `json:"email"`
+	Website               string     `json:"website"`
+	BranchType            string     `json:"branchType"`
+	HeadBranch            *BranchRef `json:"headBranch"`
+	Address               struct {
 		Country struct {
 			ID string `json:"id"`
 		} `json:"country"`
@@ -82,80 +84,6 @@ type Branch struct {
 		Postcode    string `json:"postcode"`
 		AddressMemo string `json:"addressMemo"`
 	} `json:"postalAddress"`
-	OptionalFields1 struct {
-		Boolean1    bool        `json:"boolean1"`
-		Boolean2    bool        `json:"boolean2"`
-		Boolean3    bool        `json:"boolean3"`
-		Boolean4    bool        `json:"boolean4"`
-		Boolean5    bool        `json:"boolean5"`
-		Number1     json.Number `json:"number1"`
-		Number2     json.Number `json:"number2"`
-		Number3     json.Number `json:"number3"`
-		Number4     json.Number `json:"number4"`
-		Number5     json.Number `json:"number5"`
-		Date1       time.Time   `json:"date1"`
-		Date2       time.Time   `json:"date2"`
-		Date3       time.Time   `json:"date3"`
-		Date4       time.Time   `json:"date4"`
-		Date5       time.Time   `json:"date5"`
-		Text1       string      `json:"text1"`
-		Text2       string      `json:"text2"`
-		Text3       string      `json:"text3"`
-		Text4       string      `json:"text4"`
-		Text5       string      `json:"text5"`
-		Searchlist1 struct {
-			ID string `json:"id"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID string `json:"id"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID string `json:"id"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID string `json:"id"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID string `json:"id"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields1"`
-	OptionalFields2 struct {
-		Boolean1    bool        `json:"boolean1"`
-		Boolean2    bool        `json:"boolean2"`
-		Boolean3    bool        `json:"boolean3"`
-		Boolean4    bool        `json:"boolean4"`
-		Boolean5    bool        `json:"boolean5"`
-		Number1     json.Number `json:"number1"`
-		Number2     json.Number `json:"number2"`
-		Number3     json.Number `json:"number3"`
-		Number4     json.Number `json:"number4"`
-		Number5     json.Number `json:"number5"`
-		Date1       string      `json:"date1"`
-		Date2       string      `json:"date2"`
-		Date3       string      `json:"date3"`
-		Date4       string      `json:"date4"`
-		Date5       string      `json:"date5"`
-		Text1       string      `json:"text1"`
-		Text2       string      `json:"text2"`
-		Text3       string      `json:"text3"`
-		Text4       string      `json:"text4"`
-		Text5       string      `json:"text5"`
-		Searchlist1 struct {
-			ID string `json:"id"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID string `json:"id"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID string `json:"id"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID string `json:"id"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID string `json:"id"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields2"`
 }
 
 type CountryIterator struct {
@@ -193,137 +121,101 @@ func (i *PeopleIterator) Person() (*Person, error) {
 	return person, err
 }
 
+func (rc *RestClient) GetPerson(ctx context.Context, id string) (*Person, error) {
+	person := &Person{}
+	err := rc.get(ctx, "persons", id, person)
+	return person, err
+}
+
+func (rc *RestClient) SavePerson(ctx context.Context, person *Person) (string, error) {
+	if len(person.Gender) == 0 { // Requires a value.
+		// person.Gender = "UNDEFINED"
+	}
+
+	response := *person
+	if err := rc.save(ctx, "persons", person.ID, person, &response); err != nil {
+		return "", err
+	}
+	return person.ID, nil
+}
+
 type Person struct {
-	ID               string `json:"id"`
-	Status           string `json:"status"`
-	Surname          string `json:"surName"` // Capitalization!?
-	FirstName        string `json:"firstName"`
-	FirstInitials    string `json:"firstInitials"`
-	Prefixes         string `json:"prefixes"`
-	Gender           string `json:"gender"`
-	EmployeeNumber   string `json:"employeeNumber"`
-	NetworkLoginName string `json:"networkLoginName"`
-	Branch           struct {
-		ID string `json:"id"`
-	} `json:"branch"`
-	Location struct {
-		ID string `json:"id"`
-	} `json:"location"`
-	Department struct {
-		ID string `json:"id"`
-	} `json:"department"`
-	Language struct {
-		ID string `json:"id"`
-	} `json:"language"`
-	DepartmentFree              string `json:"departmentFree"`
-	TasLoginName                string `json:"tasLoginName"`
-	Password                    string `json:"password"`
-	PhoneNumber                 string `json:"phoneNumber"`
-	MobileNumber                string `json:"mobileNumber"`
-	Fax                         string `json:"fax"`
-	Email                       string `json:"email"`
-	JobTitle                    string `json:"jobTitle"`
-	ShowBudgetholder            bool   `json:"showBudgetholder"`
-	ShowDepartment              bool   `json:"showDepartment"`
-	ShowBranch                  bool   `json:"showBranch"`
-	ShowSubsidiaries            bool   `json:"showSubsidiaries"`
-	ShowAllBranches             bool   `json:"showAllBranches"`
-	AuthorizeAll                bool   `json:"authorizeAll"`
-	AuthorizeDepartment         bool   `json:"authorizeDepartment"`
-	AuthorizeBudgetHolder       bool   `json:"authorizeBudgetHolder"`
-	AuthorizeBranch             bool   `json:"authorizeBranch"`
-	AuthorizeSubsidiaryBranches bool   `json:"authorizeSubsidiaryBranches"`
-	OptionalFields1             struct {
-		Boolean1    bool      `json:"boolean1"`
-		Boolean2    bool      `json:"boolean2"`
-		Boolean3    bool      `json:"boolean3"`
-		Boolean4    bool      `json:"boolean4"`
-		Boolean5    bool      `json:"boolean5"`
-		Number1     int       `json:"number1"`
-		Number2     int       `json:"number2"`
-		Number3     int       `json:"number3"`
-		Number4     int       `json:"number4"`
-		Number5     int       `json:"number5"`
-		Date1       time.Time `json:"date1"`
-		Date2       time.Time `json:"date2"`
-		Date3       time.Time `json:"date3"`
-		Date4       time.Time `json:"date4"`
-		Date5       time.Time `json:"date5"`
-		Text1       string    `json:"text1"`
-		Text2       string    `json:"text2"`
-		Text3       string    `json:"text3"`
-		Text4       string    `json:"text4"`
-		Text5       string    `json:"text5"`
-		Searchlist1 struct {
-			ID string `json:"id"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID string `json:"id"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID string `json:"id"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID string `json:"id"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID string `json:"id"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields1"`
-	OptionalFields2 struct {
-		Boolean1    bool      `json:"boolean1"`
-		Boolean2    bool      `json:"boolean2"`
-		Boolean3    bool      `json:"boolean3"`
-		Boolean4    bool      `json:"boolean4"`
-		Boolean5    bool      `json:"boolean5"`
-		Number1     int       `json:"number1"`
-		Number2     int       `json:"number2"`
-		Number3     int       `json:"number3"`
-		Number4     int       `json:"number4"`
-		Number5     int       `json:"number5"`
-		Date1       time.Time `json:"date1"`
-		Date2       time.Time `json:"date2"`
-		Date3       time.Time `json:"date3"`
-		Date4       time.Time `json:"date4"`
-		Date5       time.Time `json:"date5"`
-		Text1       string    `json:"text1"`
-		Text2       string    `json:"text2"`
-		Text3       string    `json:"text3"`
-		Text4       string    `json:"text4"`
-		Text5       string    `json:"text5"`
-		Searchlist1 struct {
-			ID string `json:"id"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID string `json:"id"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID string `json:"id"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID string `json:"id"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID string `json:"id"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields2"`
-	BudgetHolder struct {
-		ID string `json:"id"`
-	} `json:"budgetHolder"`
-	PersonExtraFieldA struct {
-		ID string `json:"id"`
-	} `json:"personExtraFieldA"`
-	PersonExtraFieldB struct {
-		ID string `json:"id"`
-	} `json:"personExtraFieldB"`
-	IsManager bool `json:"isManager"`
-	Manager   struct {
-		ID string `json:"id"`
-	} `json:"manager"`
+	ID               string       `json:"id,omitempty"`
+	Status           string       `json:"status,omitempty"`
+	Surname          string       `json:"surName"` // Capitalization!?
+	FirstName        string       `json:"firstName,omitempty"`
+	FirstInitials    string       `json:"firstInitials,omitempty"`
+	Prefixes         string       `json:"prefixes,omitempty"`
+	Gender           string       `json:"gender,omitempty"`
+	EmployeeNumber   string       `json:"employeeNumber,omitempty"`
+	NetworkLoginName string       `json:"networkLoginName,omitempty"`
+	Branch           *BranchRef   `json:"branch,omitempty"`
+	Location         *LocationRef `json:"location,omitempty"`
+	// Department       struct {
+	// 	ID string `json:"id,omitempty"`
+	// } `json:"department,omitempty"`
+	// Language struct {
+	// 	ID string `json:"id,omitempty"`
+	// } `json:"language,omitempty"`
+	DepartmentFree              string `json:"departmentFree,omitempty"`
+	TasLoginName                string `json:"tasLoginName,omitempty"`
+	Password                    string `json:"password,omitempty"`
+	PhoneNumber                 string `json:"phoneNumber,omitempty"`
+	MobileNumber                string `json:"mobileNumber,omitempty"`
+	Fax                         string `json:"fax,omitempty"`
+	Email                       string `json:"email,omitempty"`
+	JobTitle                    string `json:"jobTitle,omitempty"`
+	ShowBudgetholder            bool   `json:"showBudgetholder,omitempty"`
+	ShowDepartment              bool   `json:"showDepartment,omitempty"`
+	ShowBranch                  bool   `json:"showBranch,omitempty"`
+	ShowSubsidiaries            bool   `json:"showSubsidiaries,omitempty"`
+	ShowAllBranches             bool   `json:"showAllBranches,omitempty"`
+	AuthorizeAll                bool   `json:"authorizeAll,omitempty"`
+	AuthorizeDepartment         bool   `json:"authorizeDepartment,omitempty"`
+	AuthorizeBudgetHolder       bool   `json:"authorizeBudgetHolder,omitempty"`
+	AuthorizeBranch             bool   `json:"authorizeBranch,omitempty"`
+	AuthorizeSubsidiaryBranches bool   `json:"authorizeSubsidiaryBranches,omitempty"`
+
+	// TODO(shane): Techspace specific.
+	MemberCompany *MemberCompany `json:"personExtraFieldA,omitempty"`
+}
+
+type LocationRef struct {
+	ID         string     `json:"id"`
+	Name       string     `json:"name,omitempty"`
+	RoomNumber string     `json:"roomNumber,omitempty"`
+	Branch     *BranchRef `json:"branch,omitempty"`
+}
+
+type LocationIterator struct {
+	*ListIterator
+}
+
+func (rc *RestClient) ListLocations(ctx context.Context) (*LocationIterator, error) {
+	it, err := rc.list(ctx, "locations")
+	return &LocationIterator{it}, err
+}
+
+func (i *LocationIterator) Location() (*Location, error) {
+	response := &LocationRef{}
+	if err := i.decode(&response); err != nil {
+		return nil, err // Wrap this bad boy.
+	}
+	return i.client.GetLocation(i.ctx, response.ID)
+}
+
+func (rc *RestClient) GetLocation(ctx context.Context, id string) (*Location, error) {
+	location := &Location{}
+	err := rc.get(ctx, "locations", id, location)
+	return location, err
+}
+
+func (l Location) Ref() *LocationRef {
+	return &LocationRef{ID: l.ID}
 }
 
 type Location struct {
-	ID            string `json:"id"`
+	ID            string `json:"id,omitempty"`
 	Name          string `json:"name"`
 	RoomNumber    string `json:"roomNumber"`
 	FunctionalUse struct {
@@ -344,98 +236,38 @@ type Location struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"branch"`
-	OptionalFields1 struct {
-		Boolean1    bool      `json:"boolean1"`
-		Boolean2    bool      `json:"boolean2"`
-		Boolean3    bool      `json:"boolean3"`
-		Boolean4    bool      `json:"boolean4"`
-		Boolean5    bool      `json:"boolean5"`
-		Number1     int       `json:"number1"`
-		Number2     int       `json:"number2"`
-		Number3     int       `json:"number3"`
-		Number4     int       `json:"number4"`
-		Number5     int       `json:"number5"`
-		Date1       time.Time `json:"date1"`
-		Date2       time.Time `json:"date2"`
-		Date3       time.Time `json:"date3"`
-		Date4       time.Time `json:"date4"`
-		Date5       time.Time `json:"date5"`
-		Text1       string    `json:"text1"`
-		Text2       string    `json:"text2"`
-		Text3       string    `json:"text3"`
-		Text4       string    `json:"text4"`
-		Text5       string    `json:"text5"`
-		Memo1       string    `json:"memo1"`
-		Memo2       string    `json:"memo2"`
-		Memo3       string    `json:"memo3"`
-		Memo4       string    `json:"memo4"`
-		Memo5       string    `json:"memo5"`
-		Searchlist1 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields1"`
-	OptionalFields2 struct {
-		Boolean1    bool      `json:"boolean1"`
-		Boolean2    bool      `json:"boolean2"`
-		Boolean3    bool      `json:"boolean3"`
-		Boolean4    bool      `json:"boolean4"`
-		Boolean5    bool      `json:"boolean5"`
-		Number1     int       `json:"number1"`
-		Number2     int       `json:"number2"`
-		Number3     int       `json:"number3"`
-		Number4     int       `json:"number4"`
-		Number5     int       `json:"number5"`
-		Date1       time.Time `json:"date1"`
-		Date2       time.Time `json:"date2"`
-		Date3       time.Time `json:"date3"`
-		Date4       time.Time `json:"date4"`
-		Date5       time.Time `json:"date5"`
-		Text1       string    `json:"text1"`
-		Text2       string    `json:"text2"`
-		Text3       string    `json:"text3"`
-		Text4       string    `json:"text4"`
-		Text5       string    `json:"text5"`
-		Memo1       string    `json:"memo1"`
-		Memo2       string    `json:"memo2"`
-		Memo3       string    `json:"memo3"`
-		Memo4       string    `json:"memo4"`
-		Memo5       string    `json:"memo5"`
-		Searchlist1 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields2"`
+}
+
+type MemberCompany struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+func (l MemberCompany) Ref() *MemberCompany {
+	return &MemberCompany{ID: l.ID}
+}
+
+type MemberCompanyIterator struct {
+	*ListIterator
+}
+
+func (rc *RestClient) ListMemberCompanies(ctx context.Context) (*MemberCompanyIterator, error) {
+	it, err := rc.list(ctx, "personExtraFieldAEntries")
+	return &MemberCompanyIterator{it}, err
+}
+
+func (i *MemberCompanyIterator) MemberCompany() (*MemberCompany, error) {
+	response := &MemberCompany{}
+	if err := i.decode(&response); err != nil {
+		return nil, err // Wrap this bad boy.
+	}
+	return response, nil
+}
+
+func (rc *RestClient) SaveMemberCompany(ctx context.Context, company *MemberCompany) (string, error) {
+	response := *company
+	if err := rc.save(ctx, "personExtraFieldAEntries", "", company, &response); err != nil {
+		return "", err
+	}
+	return response.ID, nil
 }
