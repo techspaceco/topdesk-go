@@ -57,7 +57,7 @@ func (wc *WebdavClient) Put(context context.Context, filepath string, file io.Re
 	defer res.Body.Close()
 
 	switch res.StatusCode {
-	case http.StatusOK, http.StatusCreated:
+	case http.StatusOK, http.StatusCreated, http.StatusNoContent:
 		return nil
 	default:
 		return fmt.Errorf("%s put %s", http.StatusText(res.StatusCode), uri.String())
