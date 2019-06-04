@@ -111,7 +111,7 @@ type PeopleIterator struct {
 }
 
 func (rc *RestClient) ListPeople(ctx context.Context) (*PeopleIterator, error) {
-	it, err := rc.list(ctx, "countries")
+	it, err := rc.list(ctx, "persons")
 	return &PeopleIterator{it}, err
 }
 
