@@ -103,6 +103,7 @@ func (rc *RestClient) save(ctx context.Context, resource string, id string, requ
 	uri := *rc.endpoint
 	uri.Path = path.Join(uri.Path, resource)
 	if len(id) > 0 {
+		method = http.MethodPut
 		uri.Path = path.Join(uri.Path, "id", id)
 	}
 
