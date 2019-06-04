@@ -140,17 +140,18 @@ func (rc *RestClient) SavePerson(ctx context.Context, person *Person) (string, e
 }
 
 type Person struct {
-	ID               string       `json:"id,omitempty"`
-	Status           string       `json:"status,omitempty"`
-	Surname          string       `json:"surName"` // Capitalization!?
-	FirstName        string       `json:"firstName,omitempty"`
-	FirstInitials    string       `json:"firstInitials,omitempty"`
-	Prefixes         string       `json:"prefixes,omitempty"`
-	Gender           string       `json:"gender,omitempty"`
-	EmployeeNumber   string       `json:"employeeNumber,omitempty"`
-	NetworkLoginName string       `json:"networkLoginName,omitempty"`
-	Branch           *BranchRef   `json:"branch,omitempty"`
-	Location         *LocationRef `json:"location,omitempty"`
+	ID                    string       `json:"id,omitempty"`
+	Status                string       `json:"status,omitempty"`
+	Surname               string       `json:"surName"` // Capitalization!?
+	FirstName             string       `json:"firstName,omitempty"`
+	FirstInitials         string       `json:"firstInitials,omitempty"`
+	Prefixes              string       `json:"prefixes,omitempty"`
+	Gender                string       `json:"gender,omitempty"`
+	EmployeeNumber        string       `json:"employeeNumber,omitempty"`
+	NetworkLoginName      string       `json:"networkLoginName,omitempty"`
+	ClientReferenceNumber string       `json:"clientReferenceNumber,omitempty"`
+	Branch                *BranchRef   `json:"branch,omitempty"`
+	Location              *LocationRef `json:"location,omitempty"`
 	// Department       struct {
 	// 	ID string `json:"id,omitempty"`
 	// } `json:"department,omitempty"`
