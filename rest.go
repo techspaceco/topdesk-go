@@ -175,7 +175,7 @@ func (l *ListIterator) decode(response interface{}) error {
 	return err
 }
 
-func (l *ListIterator) More() bool {
+func (l *ListIterator) Next() bool {
 	if len(l.data) == 0 && l.more {
 		uri := *l.client.endpoint
 		uri.Path = path.Join(uri.Path, l.resource)
