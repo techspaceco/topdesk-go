@@ -136,7 +136,7 @@ func (rc *RestClient) SavePerson(ctx context.Context, person *Person) (string, e
 	if err := rc.save(ctx, "persons", person.ID, person, &response); err != nil {
 		return "", err
 	}
-	return person.ID, nil
+	return response.ID, nil
 }
 
 type Person struct {
