@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"path"
 	"sync"
@@ -58,8 +57,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 
-	debugging, _ := httputil.DumpRequest(req, true)
-	fmt.Printf("%s\n", debugging)
+	// debugging, _ := httputil.DumpRequest(req, true)
+	// fmt.Printf("%s\n", debugging)
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	res, err := client.Do(req)
@@ -68,8 +67,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	}
 	defer res.Body.Close()
 
-	debugging, _ = httputil.DumpResponse(res, true)
-	fmt.Printf("%s\n", debugging)
+	// debugging, _ = httputil.DumpResponse(res, true)
+	// fmt.Printf("%s\n", debugging)
 
 	if err := json.NewDecoder(res.Body).Decode(response); err != nil {
 		return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
@@ -142,6 +141,8 @@ func (rc *RestClient) delete(ctx context.Context, resource string, id string) er
 
 func (rc *RestClient) list(ctx context.Context, resource string) (*ListIterator, error) {
 	return &ListIterator{
+		start:    0,
+		pageSize: 100, // Magic number, but it's Topdesk max.
 		client:   rc,
 		ctx:      ctx,
 		more:     true,
@@ -181,20 +182,16 @@ func (l *ListIterator) Next() bool {
 		uri := *l.client.endpoint
 		uri.Path = path.Join(uri.Path, l.resource)
 
-		start := uint64(0)
-		if l.start > 0 {
-			start = l.start + l.pageSize
-		}
-
 		query := url.Values{}
-		query.Set("page_size", "100")
-		query.Set("start", fmt.Sprintf("%d", start))
+		query.Set("page_size", fmt.Sprintf("%d", l.pageSize))
+		query.Set("start", fmt.Sprintf("%d", l.start))
 		uri.RawQuery = query.Encode()
 
 		status, err := l.client.do(l.ctx, http.MethodGet, uri.String(), nil, &l.data)
 		if err != nil {
 			return false
 		}
+		l.start = l.start + l.pageSize
 		l.more = (status == http.StatusPartialContent)
 	}
 
