@@ -216,27 +216,25 @@ type Person struct {
 	// Language struct {
 	// 	ID string `json:"id,omitempty"`
 	// } `json:"language,omitempty"`
-	DepartmentFree              string `json:"departmentFree,omitempty"`
-	TasLoginName                string `json:"tasLoginName,omitempty"`
-	Password                    string `json:"password,omitempty"`
-	PhoneNumber                 string `json:"phoneNumber,omitempty"`
-	MobileNumber                string `json:"mobileNumber,omitempty"`
-	Fax                         string `json:"fax,omitempty"`
-	Email                       string `json:"email,omitempty"`
-	JobTitle                    string `json:"jobTitle,omitempty"`
-	ShowBudgetholder            bool   `json:"showBudgetholder,omitempty"`
-	ShowDepartment              bool   `json:"showDepartment,omitempty"`
-	ShowBranch                  bool   `json:"showBranch,omitempty"`
-	ShowSubsidiaries            bool   `json:"showSubsidiaries,omitempty"`
-	ShowAllBranches             bool   `json:"showAllBranches,omitempty"`
-	AuthorizeAll                bool   `json:"authorizeAll,omitempty"`
-	AuthorizeDepartment         bool   `json:"authorizeDepartment,omitempty"`
-	AuthorizeBudgetHolder       bool   `json:"authorizeBudgetHolder,omitempty"`
-	AuthorizeBranch             bool   `json:"authorizeBranch,omitempty"`
-	AuthorizeSubsidiaryBranches bool   `json:"authorizeSubsidiaryBranches,omitempty"`
-
-	// TODO(shane): Techspace specific.
-	MemberCompany *MemberCompany `json:"personExtraFieldA,omitempty"`
+	DepartmentFree              string             `json:"departmentFree,omitempty"`
+	TasLoginName                string             `json:"tasLoginName,omitempty"`
+	Password                    string             `json:"password,omitempty"`
+	PhoneNumber                 string             `json:"phoneNumber,omitempty"`
+	MobileNumber                string             `json:"mobileNumber,omitempty"`
+	Fax                         string             `json:"fax,omitempty"`
+	Email                       string             `json:"email,omitempty"`
+	JobTitle                    string             `json:"jobTitle,omitempty"`
+	ShowBudgetholder            bool               `json:"showBudgetholder,omitempty"`
+	ShowDepartment              bool               `json:"showDepartment,omitempty"`
+	ShowBranch                  bool               `json:"showBranch,omitempty"`
+	ShowSubsidiaries            bool               `json:"showSubsidiaries,omitempty"`
+	ShowAllBranches             bool               `json:"showAllBranches,omitempty"`
+	AuthorizeAll                bool               `json:"authorizeAll,omitempty"`
+	AuthorizeDepartment         bool               `json:"authorizeDepartment,omitempty"`
+	AuthorizeBudgetHolder       bool               `json:"authorizeBudgetHolder,omitempty"`
+	AuthorizeBranch             bool               `json:"authorizeBranch,omitempty"`
+	AuthorizeSubsidiaryBranches bool               `json:"authorizeSubsidiaryBranches,omitempty"`
+	PersonExtraFieldA           *PersonExtraFieldA `json:"personExtraFieldA,omitempty"`
 }
 
 func (s *Person) DTO() *PersonDTO {
@@ -261,9 +259,9 @@ func (s *Person) DTO() *PersonDTO {
 	if branch != nil {
 		branch = branch.Ref()
 	}
-	company := s.MemberCompany
-	if company != nil {
-		company = company.Ref()
+	extraFieldA := s.PersonExtraFieldA
+	if extraFieldA != nil {
+		extraFieldA = extraFieldA.Ref()
 	}
 	location := s.Location
 	if location != nil {
@@ -298,9 +296,7 @@ func (s *Person) DTO() *PersonDTO {
 		AuthorizeBudgetHolder:       s.AuthorizeBudgetHolder,
 		AuthorizeBranch:             s.AuthorizeBranch,
 		AuthorizeSubsidiaryBranches: s.AuthorizeSubsidiaryBranches,
-
-		// TODO(shane): Techspace specific.
-		MemberCompany: company,
+		PersonExtraFieldA:           extraFieldA,
 	}
 }
 
@@ -321,27 +317,25 @@ type PersonDTO struct {
 	// Language struct {
 	// 	ID string `json:"id,omitempty"`
 	// } `json:"language,omitempty"`
-	DepartmentFree              string `json:"departmentFree,omitempty"`
-	TasLoginName                string `json:"tasLoginName,omitempty"`
-	Password                    string `json:"password,omitempty"`
-	PhoneNumber                 string `json:"phoneNumber,omitempty"`
-	MobileNumber                string `json:"mobileNumber,omitempty"`
-	Fax                         string `json:"fax,omitempty"`
-	Email                       string `json:"email,omitempty"`
-	JobTitle                    string `json:"jobTitle,omitempty"`
-	ShowBudgetholder            bool   `json:"showBudgetholder,omitempty"`
-	ShowDepartment              bool   `json:"showDepartment,omitempty"`
-	ShowBranch                  bool   `json:"showBranch,omitempty"`
-	ShowSubsidiaries            bool   `json:"showSubsidiaries,omitempty"`
-	ShowAllBranches             bool   `json:"showAllBranches,omitempty"`
-	AuthorizeAll                bool   `json:"authorizeAll,omitempty"`
-	AuthorizeDepartment         bool   `json:"authorizeDepartment,omitempty"`
-	AuthorizeBudgetHolder       bool   `json:"authorizeBudgetHolder,omitempty"`
-	AuthorizeBranch             bool   `json:"authorizeBranch,omitempty"`
-	AuthorizeSubsidiaryBranches bool   `json:"authorizeSubsidiaryBranches,omitempty"`
-
-	// TODO(shane): Techspace specific.
-	MemberCompany *MemberCompany `json:"personExtraFieldA,omitempty"`
+	DepartmentFree              string             `json:"departmentFree,omitempty"`
+	TasLoginName                string             `json:"tasLoginName,omitempty"`
+	Password                    string             `json:"password,omitempty"`
+	PhoneNumber                 string             `json:"phoneNumber,omitempty"`
+	MobileNumber                string             `json:"mobileNumber,omitempty"`
+	Fax                         string             `json:"fax,omitempty"`
+	Email                       string             `json:"email,omitempty"`
+	JobTitle                    string             `json:"jobTitle,omitempty"`
+	ShowBudgetholder            bool               `json:"showBudgetholder,omitempty"`
+	ShowDepartment              bool               `json:"showDepartment,omitempty"`
+	ShowBranch                  bool               `json:"showBranch,omitempty"`
+	ShowSubsidiaries            bool               `json:"showSubsidiaries,omitempty"`
+	ShowAllBranches             bool               `json:"showAllBranches,omitempty"`
+	AuthorizeAll                bool               `json:"authorizeAll,omitempty"`
+	AuthorizeDepartment         bool               `json:"authorizeDepartment,omitempty"`
+	AuthorizeBudgetHolder       bool               `json:"authorizeBudgetHolder,omitempty"`
+	AuthorizeBranch             bool               `json:"authorizeBranch,omitempty"`
+	AuthorizeSubsidiaryBranches bool               `json:"authorizeSubsidiaryBranches,omitempty"`
+	PersonExtraFieldA           *PersonExtraFieldA `json:"personExtraFieldA,omitempty"`
 }
 
 type LocationRef struct {
@@ -406,33 +400,33 @@ type Location struct {
 	} `json:"branch"`
 }
 
-type MemberCompany struct {
+type PersonExtraFieldA struct {
 	ID   string `json:"id,omitempty"`
 	Name string `json:"name,omitempty"`
 }
 
-func (l MemberCompany) Ref() *MemberCompany {
-	return &MemberCompany{ID: l.ID}
+func (l PersonExtraFieldA) Ref() *PersonExtraFieldA {
+	return &PersonExtraFieldA{ID: l.ID}
 }
 
-type MemberCompanyIterator struct {
+type PersonExtraFieldAIterator struct {
 	*ListIterator
 }
 
-func (rc *RestClient) ListMemberCompanies(ctx context.Context) (*MemberCompanyIterator, error) {
+func (rc *RestClient) ListMemberCompanies(ctx context.Context) (*PersonExtraFieldAIterator, error) {
 	it, err := rc.list(ctx, "personExtraFieldAEntries")
-	return &MemberCompanyIterator{it}, err
+	return &PersonExtraFieldAIterator{it}, err
 }
 
-func (i *MemberCompanyIterator) MemberCompany() (*MemberCompany, error) {
-	response := &MemberCompany{}
+func (i *PersonExtraFieldAIterator) PersonExtraFieldA() (*PersonExtraFieldA, error) {
+	response := &PersonExtraFieldA{}
 	if err := i.decode(&response); err != nil {
 		return nil, err // Wrap this bad boy.
 	}
 	return response, nil
 }
 
-func (rc *RestClient) SaveMemberCompany(ctx context.Context, company *MemberCompany) (string, error) {
+func (rc *RestClient) SavePersonExtraFieldA(ctx context.Context, company *PersonExtraFieldA) (string, error) {
 	response := *company
 	if err := rc.save(ctx, "personExtraFieldAEntries", "", company, &response); err != nil {
 		return "", err

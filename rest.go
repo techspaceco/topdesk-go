@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"path"
 	"sync"
@@ -57,8 +58,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 
-	// debugging, _ := httputil.DumpRequest(req, true)
-	// fmt.Printf("%s\n", debugging)
+	debugging, _ := httputil.DumpRequest(req, true)
+	fmt.Printf("%s\n", debugging)
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	res, err := client.Do(req)
@@ -67,8 +68,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	}
 	defer res.Body.Close()
 
-	// debugging, _ = httputil.DumpResponse(res, true)
-	// fmt.Printf("%s\n", debugging)
+	debugging, _ = httputil.DumpResponse(res, true)
+	fmt.Printf("%s\n", debugging)
 
 	if err := json.NewDecoder(res.Body).Decode(response); err != nil {
 		return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
