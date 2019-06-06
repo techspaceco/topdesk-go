@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"path"
 	"strings"
@@ -59,8 +58,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 
-	debugging, _ := httputil.DumpRequest(req, true)
-	fmt.Printf("%s\n", debugging)
+	// debugging, _ := httputil.DumpRequest(req, true)
+	// fmt.Printf("%s\n", debugging)
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	res, err := client.Do(req)
@@ -69,8 +68,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	}
 	defer res.Body.Close()
 
-	debugging, _ = httputil.DumpResponse(res, true)
-	fmt.Printf("%s\n", debugging)
+	// debugging, _ = httputil.DumpResponse(res, true)
+	// fmt.Printf("%s\n", debugging)
 
 	switch res.StatusCode {
 	case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError:
@@ -211,18 +210,15 @@ func (l *ListIterator) Next() bool {
 	return len(l.data) > 0
 }
 
-// ErrorMessages REST API list response.
-type ErrorMessages []ErrorMessage
+// ErrorMessages REST API response.
+type ErrorMessages []struct {
+	Message string `json:"message"`
+}
 
 func (e ErrorMessages) Error() string {
 	errs := []string{}
 	for _, em := range e {
 		errs = append(errs, em.Message)
 	}
-	return strings.Join(errs, ", ")
-}
-
-// ErrorMessage REST API response.
-type ErrorMessage struct {
-	Message string `json:"message"`
+	return strings.Join(errs, " ")
 }
