@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -71,8 +72,19 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	debugging, _ = httputil.DumpResponse(res, true)
 	fmt.Printf("%s\n", debugging)
 
-	if err := json.NewDecoder(res.Body).Decode(response); err != nil {
-		return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
+	switch res.StatusCode {
+	case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError:
+		// Return a
+		messages := ErrorMessages{}
+		if err := json.NewDecoder(res.Body).Decode(&messages); err != nil {
+			return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
+		}
+		return res.StatusCode, messages
+
+	case http.StatusOK, http.StatusCreated, http.StatusPartialContent:
+		if err := json.NewDecoder(res.Body).Decode(response); err != nil {
+			return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
+		}
 	}
 
 	return res.StatusCode, nil
@@ -197,4 +209,20 @@ func (l *ListIterator) Next() bool {
 	}
 
 	return len(l.data) > 0
+}
+
+// ErrorMessages REST API list response.
+type ErrorMessages []ErrorMessage
+
+func (e ErrorMessages) Error() string {
+	errs := []string{}
+	for _, em := range e {
+		errs = append(errs, em.Message)
+	}
+	return strings.Join(errs, ", ")
+}
+
+// ErrorMessage REST API response.
+type ErrorMessage struct {
+	Message string `json:"message"`
 }
