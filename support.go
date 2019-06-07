@@ -500,7 +500,7 @@ type Operator struct {
 		Name string `json:"name"`
 	} `json:"budgetHolder"`
 	EmployeeNumber     string `json:"employeeNumber"`
-	HourlyRate         int    `json:"hourlyRate"`
+	HourlyRate         string `json:"hourlyRate"`
 	NetworkLoginName   string `json:"networkLoginName"`
 	MainframeLoginName string `json:"mainframeLoginName"`
 	HasAttention       bool   `json:"hasAttention"`
