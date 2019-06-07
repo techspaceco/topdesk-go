@@ -6,7 +6,6 @@ package topdesk
 
 import (
 	"context"
-	"time"
 )
 
 type BranchRef struct {
@@ -509,134 +508,40 @@ type Operator struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"attention"`
-	Comments                 string    `json:"comments"`
-	Installer                bool      `json:"installer"`
-	FirstLineCallOperator    bool      `json:"firstLineCallOperator"`
-	SecondLineCallOperator   bool      `json:"secondLineCallOperator"`
-	ProblemManager           bool      `json:"problemManager"`
-	ProblemOperator          bool      `json:"problemOperator"`
-	ChangeCoordinator        bool      `json:"changeCoordinator"`
-	ChangeActivitiesOperator bool      `json:"changeActivitiesOperator"`
-	RequestForChangeOperator bool      `json:"requestForChangeOperator"`
-	ExtensiveChangeOperator  bool      `json:"extensiveChangeOperator"`
-	SimpleChangeOperator     bool      `json:"simpleChangeOperator"`
-	ScenarioManager          bool      `json:"scenarioManager"`
-	PlanningActivityManager  bool      `json:"planningActivityManager"`
-	ProjectCoordinator       bool      `json:"projectCoordinator"`
-	ProjectActiviesOperator  bool      `json:"projectActiviesOperator"`
-	StockManager             bool      `json:"stockManager"`
-	ReservationsOperator     bool      `json:"reservationsOperator"`
-	ServiceOperator          bool      `json:"serviceOperator"`
-	ExternalHelpDeskParty    bool      `json:"externalHelpDeskParty"`
-	ContractManager          bool      `json:"contractManager"`
-	OperationsOperator       bool      `json:"operationsOperator"`
-	OperationsManager        bool      `json:"operationsManager"`
-	KnowledgeBaseManager     bool      `json:"knowledgeBaseManager"`
-	AccountManager           bool      `json:"accountManager"`
-	CreationDate             time.Time `json:"creationDate"`
+	Comments                 string `json:"comments"`
+	Installer                bool   `json:"installer"`
+	FirstLineCallOperator    bool   `json:"firstLineCallOperator"`
+	SecondLineCallOperator   bool   `json:"secondLineCallOperator"`
+	ProblemManager           bool   `json:"problemManager"`
+	ProblemOperator          bool   `json:"problemOperator"`
+	ChangeCoordinator        bool   `json:"changeCoordinator"`
+	ChangeActivitiesOperator bool   `json:"changeActivitiesOperator"`
+	RequestForChangeOperator bool   `json:"requestForChangeOperator"`
+	ExtensiveChangeOperator  bool   `json:"extensiveChangeOperator"`
+	SimpleChangeOperator     bool   `json:"simpleChangeOperator"`
+	ScenarioManager          bool   `json:"scenarioManager"`
+	PlanningActivityManager  bool   `json:"planningActivityManager"`
+	ProjectCoordinator       bool   `json:"projectCoordinator"`
+	ProjectActiviesOperator  bool   `json:"projectActiviesOperator"`
+	StockManager             bool   `json:"stockManager"`
+	ReservationsOperator     bool   `json:"reservationsOperator"`
+	ServiceOperator          bool   `json:"serviceOperator"`
+	ExternalHelpDeskParty    bool   `json:"externalHelpDeskParty"`
+	ContractManager          bool   `json:"contractManager"`
+	OperationsOperator       bool   `json:"operationsOperator"`
+	OperationsManager        bool   `json:"operationsManager"`
+	KnowledgeBaseManager     bool   `json:"knowledgeBaseManager"`
+	AccountManager           bool   `json:"accountManager"`
+	CreationDate             string `json:"creationDate"`
 	Creator                  struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"creator"`
-	ModificationDate time.Time `json:"modificationDate"`
+	ModificationDate string `json:"modificationDate"`
 	Modifier         struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"modifier"`
-	OptionalFields1 struct {
-		Boolean1    bool      `json:"boolean1"`
-		Boolean2    bool      `json:"boolean2"`
-		Boolean3    bool      `json:"boolean3"`
-		Boolean4    bool      `json:"boolean4"`
-		Boolean5    bool      `json:"boolean5"`
-		Number1     int       `json:"number1"`
-		Number2     int       `json:"number2"`
-		Number3     int       `json:"number3"`
-		Number4     int       `json:"number4"`
-		Number5     int       `json:"number5"`
-		Date1       time.Time `json:"date1"`
-		Date2       time.Time `json:"date2"`
-		Date3       time.Time `json:"date3"`
-		Date4       time.Time `json:"date4"`
-		Date5       time.Time `json:"date5"`
-		Text1       string    `json:"text1"`
-		Text2       string    `json:"text2"`
-		Text3       string    `json:"text3"`
-		Text4       string    `json:"text4"`
-		Text5       string    `json:"text5"`
-		Memo1       string    `json:"memo1"`
-		Memo2       string    `json:"memo2"`
-		Memo3       string    `json:"memo3"`
-		Memo4       string    `json:"memo4"`
-		Memo5       string    `json:"memo5"`
-		Searchlist1 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields1"`
-	OptionalFields2 struct {
-		Boolean1    bool      `json:"boolean1"`
-		Boolean2    bool      `json:"boolean2"`
-		Boolean3    bool      `json:"boolean3"`
-		Boolean4    bool      `json:"boolean4"`
-		Boolean5    bool      `json:"boolean5"`
-		Number1     int       `json:"number1"`
-		Number2     int       `json:"number2"`
-		Number3     int       `json:"number3"`
-		Number4     int       `json:"number4"`
-		Number5     int       `json:"number5"`
-		Date1       time.Time `json:"date1"`
-		Date2       time.Time `json:"date2"`
-		Date3       time.Time `json:"date3"`
-		Date4       time.Time `json:"date4"`
-		Date5       time.Time `json:"date5"`
-		Text1       string    `json:"text1"`
-		Text2       string    `json:"text2"`
-		Text3       string    `json:"text3"`
-		Text4       string    `json:"text4"`
-		Text5       string    `json:"text5"`
-		Memo1       string    `json:"memo1"`
-		Memo2       string    `json:"memo2"`
-		Memo3       string    `json:"memo3"`
-		Memo4       string    `json:"memo4"`
-		Memo5       string    `json:"memo5"`
-		Searchlist1 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist1"`
-		Searchlist2 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist2"`
-		Searchlist3 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist3"`
-		Searchlist4 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist4"`
-		Searchlist5 struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"searchlist5"`
-	} `json:"optionalFields2"`
 }
 
 type OperatorIterator struct {
