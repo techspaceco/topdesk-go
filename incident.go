@@ -2,6 +2,7 @@ package topdesk
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -134,7 +135,7 @@ type Incident struct {
 	} `json:"sla"`
 	OnHold          bool        `json:"onHold"`
 	OnHoldDate      interface{} `json:"onHoldDate"`
-	OnHoldDuration  int         `json:"onHoldDuration"`
+	OnHoldDuration  json.Number `json:"onHoldDuration"`
 	FeedbackMessage interface{} `json:"feedbackMessage"`
 	FeedbackRating  interface{} `json:"feedbackRating"`
 	Operator        struct {
@@ -164,11 +165,11 @@ type Incident struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"closureCode"`
-	TimeSpent                      int     `json:"timeSpent"`
-	TimeSpentFirstLine             int     `json:"timeSpentFirstLine"`
-	TimeSpentSecondLineAndPartials int     `json:"timeSpentSecondLineAndPartials"`
-	Costs                          float64 `json:"costs"`
-	EscalationStatus               string  `json:"escalationStatus"`
+	TimeSpent                      json.Number `json:"timeSpent"`
+	TimeSpentFirstLine             json.Number `json:"timeSpentFirstLine"`
+	TimeSpentSecondLineAndPartials json.Number `json:"timeSpentSecondLineAndPartials"`
+	Costs                          json.Number `json:"costs"`
+	EscalationStatus               string      `json:"escalationStatus"`
 	EscalationReason               struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
@@ -197,7 +198,7 @@ type Incident struct {
 	} `json:"majorCallObject"`
 	PublishToSsd      bool        `json:"publishToSsd"`
 	Monitored         bool        `json:"monitored"`
-	ExpectedTimeSpent int         `json:"expectedTimeSpent"`
+	ExpectedTimeSpent json.Number `json:"expectedTimeSpent"`
 	MainIncident      interface{} `json:"mainIncident"`
 	PartialIncidents  []struct {
 		Link string `json:"link"`
