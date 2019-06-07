@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"path"
 )
 
@@ -239,7 +238,7 @@ func (rc *RestClient) GetIncidentNumber(ctx context.Context, number string) (*In
 	uri := *rc.endpoint
 	uri.Path = path.Join(uri.Path, "incidents")
 	if len(number) > 0 {
-		uri.Path = path.Join(uri.Path, "number", url.QueryEscape(number))
+		uri.Path = path.Join(uri.Path, "number", number)
 	}
 
 	status, err := rc.do(ctx, http.MethodGet, uri.String(), nil, response)

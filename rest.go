@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"path"
 	"strings"
@@ -58,8 +59,8 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 
-	// debugging, _ := httputil.DumpRequest(req, true)
-	// fmt.Printf("%s\n", debugging)
+	debugging, _ := httputil.DumpRequest(req, true)
+	fmt.Printf("%s\n", debugging)
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	res, err := client.Do(req)
@@ -93,7 +94,7 @@ func (rc *RestClient) get(ctx context.Context, resource string, id string, respo
 	uri := *rc.endpoint
 	uri.Path = path.Join(uri.Path, resource)
 	if len(id) > 0 {
-		uri.Path = path.Join(uri.Path, "id", url.QueryEscape(id))
+		uri.Path = path.Join(uri.Path, "id", id)
 	}
 
 	status, err := rc.do(ctx, http.MethodGet, uri.String(), nil, response)
