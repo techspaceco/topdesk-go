@@ -6,6 +6,7 @@ package topdesk
 
 import (
 	"context"
+	"encoding/json"
 )
 
 type BranchRef struct {
@@ -499,11 +500,11 @@ type Operator struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"budgetHolder"`
-	EmployeeNumber     string `json:"employeeNumber"`
-	HourlyRate         string `json:"hourlyRate"`
-	NetworkLoginName   string `json:"networkLoginName"`
-	MainframeLoginName string `json:"mainframeLoginName"`
-	HasAttention       bool   `json:"hasAttention"`
+	EmployeeNumber     string      `json:"employeeNumber"`
+	HourlyRate         json.Number `json:"hourlyRate"`
+	NetworkLoginName   string      `json:"networkLoginName"`
+	MainframeLoginName string      `json:"mainframeLoginName"`
+	HasAttention       bool        `json:"hasAttention"`
 	Attention          struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
