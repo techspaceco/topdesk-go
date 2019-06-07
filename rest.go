@@ -93,7 +93,7 @@ func (rc *RestClient) get(ctx context.Context, resource string, id string, respo
 	uri := *rc.endpoint
 	uri.Path = path.Join(uri.Path, resource)
 	if len(id) > 0 {
-		uri.Path = path.Join(uri.Path, "id", id)
+		uri.Path = path.Join(uri.Path, "id", url.QueryEscape(id))
 	}
 
 	status, err := rc.do(ctx, http.MethodGet, uri.String(), nil, response)
