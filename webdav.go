@@ -54,7 +54,11 @@ func (wc *WebdavClient) Put(context context.Context, filepath string, file io.Re
 	req.Header.Add("Authorization", wc.authorization)
 	req.Header.Add("Content-Type", "binary/octet-stream")
 
-	// TODO(shane): Dialer timeout.
+	// The servies endpoint differs from the imports endpoint.
+	if strings.HasPrefix(uri.Path, "/services") {
+		req.Header.Set("Content-Type", "application/octet-stream")
+	}
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
