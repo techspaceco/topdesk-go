@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -41,8 +42,13 @@ func NewWebdavClient(ctx context.Context, endpoint string, authorization string)
 
 // Put a file on the server.
 func (wc *WebdavClient) Put(context context.Context, filepath string, file io.Reader) error {
+	parts := strings.Split(filepath, "?")
+
 	uri := *wc.endpoint
-	uri.Path = path.Join(uri.Path, filepath)
+	uri.Path = path.Join(uri.Path, parts[0])
+	if len(parts) > 1 {
+		uri.RawQuery = parts[1]
+	}
 
 	req, _ := http.NewRequest(http.MethodPut, uri.String(), file)
 	req.Header.Add("Authorization", wc.authorization)
