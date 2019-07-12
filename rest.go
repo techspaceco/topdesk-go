@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -42,18 +41,13 @@ func NewRestClient(ctx context.Context, endpoint string, authorization string) (
 	return rc, nil
 }
 
-func (rc *RestClient) do(context context.Context, method string, uri string, request interface{}, response interface{}) (int, error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
+func (rc *RestClient) do(context context.Context, method string, uri *url.URL, request interface{}, response interface{}) (int, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
-		return http.StatusBadRequest, errors.Wrapf(err, "%s %s encoding request body", method, u.String())
+		return http.StatusBadRequest, errors.Wrapf(err, "%s %s encoding request body", method, uri.String())
 	}
 
-	req, _ := http.NewRequest(method, u.String(), bytes.NewReader(body))
+	req, _ := http.NewRequest(method, uri.String(), bytes.NewReader(body))
 	req.Header.Add("Authorization", rc.authorization)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
@@ -64,7 +58,7 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 	client := &http.Client{Timeout: 5 * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
-		return http.StatusBadRequest, errors.Wrapf(err, "%s %s", method, u.String())
+		return http.StatusBadRequest, errors.Wrapf(err, "%s %s", method, uri.String())
 	}
 	defer res.Body.Close()
 
@@ -76,89 +70,75 @@ func (rc *RestClient) do(context context.Context, method string, uri string, req
 		// Return a
 		messages := ErrorMessages{}
 		if err := json.NewDecoder(res.Body).Decode(&messages); err != nil {
-			return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
+			return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, uri.String())
 		}
 		return res.StatusCode, messages
 
 	case http.StatusOK, http.StatusCreated, http.StatusPartialContent:
 		if err := json.NewDecoder(res.Body).Decode(response); err != nil {
-			return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, u.String())
+			return http.StatusBadRequest, errors.Wrapf(err, "%s %s decoding response body", method, uri.String())
 		}
 	}
 
 	return res.StatusCode, nil
 }
 
-func (rc *RestClient) get(ctx context.Context, resource string, id string, response interface{}) error {
-	uri := *rc.endpoint
-	uri.Path = path.Join(uri.Path, resource)
-	if len(id) > 0 {
-		uri.Path = path.Join(uri.Path, "id", id)
-	}
-
-	status, err := rc.do(ctx, http.MethodGet, uri.String(), nil, response)
-	if err != nil {
+func (rc *RestClient) get(ctx context.Context, endpoint *url.URL, response interface{}) error {
+	status, err := rc.do(ctx, http.MethodGet, endpoint, nil, response)
+	switch {
+	case err != nil:
 		return err
-	}
-
-	switch status {
-	case http.StatusOK:
+	case status == http.StatusOK:
 		return nil
 	default:
-		return fmt.Errorf("%s delete %s", http.StatusText(status), uri.String())
+		return fmt.Errorf("%s save %s", http.StatusText(status), endpoint.String())
 	}
 }
 
-func (rc *RestClient) save(ctx context.Context, resource string, id string, request interface{}, response interface{}) error {
-	method := http.MethodPost
-	uri := *rc.endpoint
-	uri.Path = path.Join(uri.Path, resource)
-	if len(id) > 0 {
-		method = http.MethodPut
-		uri.Path = path.Join(uri.Path, "id", id)
-	}
-
-	status, err := rc.do(ctx, method, uri.String(), request, response)
-	if err != nil {
+func (rc *RestClient) create(ctx context.Context, endpoint *url.URL, request interface{}, response interface{}) error {
+	status, err := rc.do(ctx, http.MethodPost, endpoint, request, response)
+	switch {
+	case err != nil:
 		return err
-	}
-
-	switch status {
-	case http.StatusCreated, http.StatusOK:
+	case status == http.StatusOK || status == http.StatusCreated:
 		return nil
 	default:
-		return fmt.Errorf("%s save %s", http.StatusText(status), uri.String())
+		return fmt.Errorf("%s save %s", http.StatusText(status), endpoint.String())
 	}
 }
 
-func (rc *RestClient) delete(ctx context.Context, resource string, id string) error {
-	uri := *rc.endpoint
-	uri.Path = path.Join(uri.Path, resource)
-	if len(id) > 0 {
-		uri.Path = path.Join(uri.Path, "id", id)
-	}
-
-	status, err := rc.do(ctx, http.MethodDelete, uri.String(), nil, nil)
-	if err != nil {
+func (rc *RestClient) update(ctx context.Context, endpoint *url.URL, request interface{}, response interface{}) error {
+	status, err := rc.do(ctx, http.MethodPut, endpoint, request, response)
+	switch {
+	case err != nil:
 		return err
-	}
-
-	switch status {
-	case http.StatusOK:
+	case status == http.StatusOK:
 		return nil
 	default:
-		return fmt.Errorf("%s delete %s", http.StatusText(status), uri.String())
+		return fmt.Errorf("%s save %s", http.StatusText(status), endpoint.String())
 	}
 }
 
-func (rc *RestClient) list(ctx context.Context, resource string) (*ListIterator, error) {
+func (rc *RestClient) delete(ctx context.Context, endpoint *url.URL) error {
+	status, err := rc.do(ctx, http.MethodDelete, endpoint, nil, nil)
+	switch {
+	case err != nil:
+		return err
+	case status == http.StatusOK:
+		return nil
+	default:
+		return fmt.Errorf("%s save %s", http.StatusText(status), endpoint.String())
+	}
+}
+
+func (rc *RestClient) list(ctx context.Context, endpoint *url.URL) (*ListIterator, error) {
 	return &ListIterator{
 		start:    0,
 		pageSize: 100, // Magic number, but it's Topdesk max.
 		client:   rc,
 		ctx:      ctx,
 		more:     true,
-		resource: resource,
+		endpoint: endpoint,
 		data:     make([]json.RawMessage, 0),
 	}, nil
 }
@@ -168,7 +148,7 @@ type ListIterator struct {
 	start    uint64
 	pageSize uint64
 	more     bool
-	resource string
+	endpoint *url.URL
 	ctx      context.Context
 	mu       sync.Mutex
 	data     []json.RawMessage
@@ -191,15 +171,14 @@ func (l *ListIterator) decode(response interface{}) error {
 
 func (l *ListIterator) Next() bool {
 	if len(l.data) == 0 && l.more {
-		uri := *l.client.endpoint
-		uri.Path = path.Join(uri.Path, l.resource)
+		uri := *l.endpoint
 
-		query := url.Values{}
+		query := uri.Query()
 		query.Set("page_size", fmt.Sprintf("%d", l.pageSize))
 		query.Set("start", fmt.Sprintf("%d", l.start))
 		uri.RawQuery = query.Encode()
 
-		status, err := l.client.do(l.ctx, http.MethodGet, uri.String(), nil, &l.data)
+		status, err := l.client.do(l.ctx, http.MethodGet, &uri, nil, &l.data)
 		if err != nil {
 			return false
 		}
@@ -221,4 +200,17 @@ func (e ErrorMessages) Error() string {
 		errs = append(errs, em.Message)
 	}
 	return strings.Join(errs, " ")
+}
+
+// Ref is a resource reference.
+type Ref struct {
+	ID string `"id"`
+}
+
+// ResourceRef creates a reference from any resource that implements the interface.
+//
+// A resource returned by Get* may not be compatible with an Update*. Often the request object only accepts
+// a Ref struct not the ID string or the complete object.
+type ResourceRef interface {
+	Ref() Ref
 }

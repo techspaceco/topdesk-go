@@ -3,20 +3,32 @@ package topdesk
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"net/http"
 	"path"
 )
 
-type IncidentRef struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-	Number string `json:"number"`
+type IncidentIterator struct {
+	*ListIterator
 }
+
+func (i IncidentIterator) Incident() (*Incident, error) {
+	response := &Ref{}
+	if err := i.decode(&response); err != nil {
+		return nil, err // Wrap this bad boy.
+	}
+	return i.client.GetIncident(i.ctx, response.ID)
+}
+
+type IncidentStatus string
+
+const (
+	IncidentStatusFirstLine  IncidentStatus = "firstLine"
+	IncidentStatusSecondLine IncidentStatus = "secondLine"
+	IncidentStatusPartial    IncidentStatus = "partial"
+)
 
 type Incident struct {
 	ID          string `json:"id"`
-	Status      string `json:"status"`
+	Status      IncidentStatus
 	Number      string `json:"number"`
 	Request     string `json:"request"`
 	Requests    string `json:"requests"`
@@ -209,47 +221,71 @@ type Incident struct {
 	} `json:"externalLinks"`
 }
 
-type IncidentIterator struct {
-	*ListIterator
+func (i Incident) Ref() *Ref {
+	return &Ref{ID: i.ID}
 }
 
-func (rc *RestClient) ListIncidents(ctx context.Context) (*IncidentIterator, error) {
-	it, err := rc.list(ctx, "incidents")
+type ListIncidentsRequest struct {
+	ExternalNumber []string
+}
+
+func (rc RestClient) ListIncidents(ctx context.Context, request *ListIncidentsRequest) (*IncidentIterator, error) {
+	uri := *rc.endpoint
+	uri.Path = path.Join(uri.Path, "incidents")
+
+	if request != nil {
+		query := uri.Query()
+		for _, no := range request.ExternalNumber {
+			query.Add("external_number", no)
+		}
+
+		uri.RawQuery = query.Encode()
+	}
+
+	it, err := rc.list(ctx, &uri)
 	return &IncidentIterator{it}, err
 }
 
-func (i *IncidentIterator) Incident() (*Incident, error) {
-	response := &IncidentRef{}
-	if err := i.decode(&response); err != nil {
-		return nil, err // Wrap this bad boy.
-	}
-	return i.client.GetIncident(i.ctx, response.ID)
-}
+func (rc RestClient) GetIncident(ctx context.Context, id string) (*Incident, error) {
+	uri := *rc.endpoint
+	uri.Path = path.Join(uri.Path, "incidents", "id", id)
 
-func (rc *RestClient) GetIncident(ctx context.Context, id string) (*Incident, error) {
 	response := &Incident{}
-	err := rc.get(ctx, "incidents", id, response)
+	err := rc.get(ctx, &uri, response)
 	return response, err
 }
 
-func (rc *RestClient) GetIncidentNumber(ctx context.Context, number string) (*Incident, error) {
-	response := &Incident{}
+func (rc RestClient) GetIncidentNumber(ctx context.Context, number string) (*Incident, error) {
+	uri := *rc.endpoint
+	uri.Path = path.Join(uri.Path, "incidents", "number", number)
 
+	response := &Incident{}
+	err := rc.get(ctx, &uri, response)
+	return response, err
+}
+
+// CreateIncidentRequest creates an incident from the perspective of an operator.
+//
+// See https://developers.topdesk.com/documentation/index.html#api-Incident-CreateIncident
+type CreateIncidentRequest struct {
+	Caller struct {
+		DynamicName string `json:"dynamicName"`
+		Email       string `json:"email"`
+	} `json:"caller"`
+	BriefDescription string `json:"briefDescription"`
+	Request          string `json:"request"`
+	ExternalNumber   string `json:"externalNumber"`
+	// TODO: Set the branch, operator group & operator?
+}
+
+func (rc RestClient) CreateIncident(ctx context.Context, request *CreateIncidentRequest) (*Incident, error) {
 	uri := *rc.endpoint
 	uri.Path = path.Join(uri.Path, "incidents")
-	if len(number) > 0 {
-		uri.Path = path.Join(uri.Path, "number", number)
-	}
 
-	status, err := rc.do(ctx, http.MethodGet, uri.String(), nil, response)
-	if err != nil {
+	response := &Ref{}
+	if err := rc.create(ctx, &uri, request, response); err != nil {
 		return nil, err
 	}
 
-	switch status {
-	case http.StatusOK:
-		return response, err
-	default:
-		return nil, fmt.Errorf("%s delete %s", http.StatusText(status), uri.String())
-	}
+	return rc.GetIncident(ctx, response.ID)
 }

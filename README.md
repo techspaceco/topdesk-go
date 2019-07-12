@@ -8,17 +8,16 @@ Partial REST and WEBDAV access to Topdesk API.
 
 ### REST
 
-The API is very incomplete, requests have been filed in https://tip.topdesk.com
+The Topdesk REST API surface area is large, poorly designed and definitely not API first. Most resources are missing
+one or more verbs and it tends to 500 a lot. Requests were filed on https://tip.topdesk.com years ago if you feel like
+adding a +1 but our guess is the developers are buried under an avalanche of technical debt from the 90s, send help!
 
-A The swagger definition exists for some modules but fails to generate. Supporting files as of v1.29.0 missing missing currency DTOs
-https://developers.topdesk.com/explorer/?page=supporting-files
+This package implements endpoints and fields as required to integrate Topdesk so will probably never will be complete.
+Our hope is given enough time Topdesk will release a more complete API with valid schema that can be used for code
+generation replacing the need for this library.
 
-#### Resources
-
-The REST API is missing a lot of POST, PUT, DELETE & GET verbs for resources:
-* Suppliers missing INDEX, GET only.
-* Locations INDEX, GET only.
-* Extra fields INDEX, POST only.
+A swagger definition exists for some modules but fails to generate. E.g. supporting files as of v1.29.0 is missing
+currency DTOs https://developers.topdesk.com/explorer/?page=supporting-files
 
 ## Usage
 
@@ -37,22 +36,33 @@ func main() {
 
   branches, _ := client.ListBranches(context.Background())
   for branches.Next() { // Pagination is transparent.
-    branch := branches.Branch()
+    branch, err := branches.Branch()
+    _ = err // Error handling omitted.
+
     log.Print("branch: %+v", branch)
   }
 
-  branch := branches.Branch() // Last branch in list.
-  person := &topdesk.Person{
-    FirstName:     "Apple",
-    FirstInitials: "A",
-    Surname:       "Arthurton",
-    Email:         "apple@arthurton.local",
-    Branch:        branch.Ref(), // Topdesk requires an {"id":"..."} structure rather than a straight ID string.
-    ShowBranch:    true,
-  }
+  // Last branch in list.
+  //
+  // Topdesk requires an {"id":"..."} structure rather than a straight ID string.
+  // .Ref() creates the correct structure from complete, list or partial objects.
+  branchRef := branches.Branch().Ref()
 
-  id, err := client.SavePerson(context.Background(), person)
-  log.Printf("person id: %s", id)
+  // Resource endpoints don't share common domain models so `*Request` structs are used to allow for differences.
+  person, err := client.CreatePerson(
+    context.Background(),
+    &topdesk.CreatePersonRequest{
+      FirstName:     "Apple",
+      FirstInitials: "A",
+      Surname:       "Arthurton",
+      Email:         "apple@arthurton.local",
+      Branch:        branchRef,
+      ShowBranch:    true,
+    },
+  )
+  _ = err // Error handling omitted.
+
+  log.Printf("person id: %s", person.ID)
 }
 ```
 
