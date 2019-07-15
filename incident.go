@@ -272,9 +272,11 @@ type CreateIncidentRequest struct {
 		DynamicName string `json:"dynamicName"`
 		Email       string `json:"email"`
 	} `json:"caller"`
-	BriefDescription string `json:"briefDescription"`
-	Request          string `json:"request"`
-	ExternalNumber   string `json:"externalNumber"`
+	BriefDescription         string `json:"briefDescription"`
+	Request                  string `json:"request"`
+	Action                   string `json:"action,omitempty"`
+	ActionInvisibleForCaller bool   `json:"actionInvisibleForCaller,omitempty"`
+	ExternalNumber           string `json:"externalNumber"`
 	// TODO: Set the branch, operator group & operator?
 }
 
