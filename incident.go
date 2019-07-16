@@ -3,6 +3,7 @@ package topdesk
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"path"
 )
 
@@ -223,6 +224,15 @@ type Incident struct {
 
 func (i Incident) Ref() *Ref {
 	return &Ref{ID: i.ID}
+}
+
+func (i Incident) RelativeURL() *url.URL {
+	uri, _ := url.Parse("/tas/secure/contained/incident")
+	query := url.Values{}
+	query.Set("action", "show")
+	query.Set("unid", i.ID)
+	uri.RawQuery = query.Encode()
+	return uri
 }
 
 type ListIncidentsRequest struct {

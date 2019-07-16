@@ -41,7 +41,17 @@ func NewRestClient(ctx context.Context, endpoint string, authorization string) (
 	return rc, nil
 }
 
-func (rc *RestClient) do(context context.Context, method string, uri *url.URL, request interface{}, response interface{}) (int, error) {
+func (rc RestClient) FullyQualifiedURL(resource ResourceRelativeURL) *url.URL {
+	rel := resource.RelativeURL()
+
+	uri := *rc.endpoint
+	uri.Path = rel.Path
+	uri.RawQuery = rel.RawQuery
+
+	return &uri
+}
+
+func (rc RestClient) do(context context.Context, method string, uri *url.URL, request interface{}, response interface{}) (int, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return http.StatusBadRequest, errors.Wrapf(err, "%s %s encoding request body", method, uri.String())
@@ -83,7 +93,7 @@ func (rc *RestClient) do(context context.Context, method string, uri *url.URL, r
 	return res.StatusCode, nil
 }
 
-func (rc *RestClient) get(ctx context.Context, endpoint *url.URL, response interface{}) error {
+func (rc RestClient) get(ctx context.Context, endpoint *url.URL, response interface{}) error {
 	status, err := rc.do(ctx, http.MethodGet, endpoint, nil, response)
 	switch {
 	case err != nil:
@@ -95,7 +105,7 @@ func (rc *RestClient) get(ctx context.Context, endpoint *url.URL, response inter
 	}
 }
 
-func (rc *RestClient) create(ctx context.Context, endpoint *url.URL, request interface{}, response interface{}) error {
+func (rc RestClient) create(ctx context.Context, endpoint *url.URL, request interface{}, response interface{}) error {
 	status, err := rc.do(ctx, http.MethodPost, endpoint, request, response)
 	switch {
 	case err != nil:
@@ -107,7 +117,7 @@ func (rc *RestClient) create(ctx context.Context, endpoint *url.URL, request int
 	}
 }
 
-func (rc *RestClient) update(ctx context.Context, endpoint *url.URL, request interface{}, response interface{}) error {
+func (rc RestClient) update(ctx context.Context, endpoint *url.URL, request interface{}, response interface{}) error {
 	status, err := rc.do(ctx, http.MethodPut, endpoint, request, response)
 	switch {
 	case err != nil:
@@ -131,11 +141,11 @@ func (rc *RestClient) delete(ctx context.Context, endpoint *url.URL) error {
 	}
 }
 
-func (rc *RestClient) list(ctx context.Context, endpoint *url.URL) (*ListIterator, error) {
+func (rc RestClient) list(ctx context.Context, endpoint *url.URL) (*ListIterator, error) {
 	return &ListIterator{
 		start:    0,
 		pageSize: 100, // Magic number, but it's Topdesk max.
-		client:   rc,
+		client:   &rc,
 		ctx:      ctx,
 		more:     true,
 		endpoint: endpoint,
@@ -213,4 +223,9 @@ type Ref struct {
 // a Ref struct not the ID string or the complete object.
 type ResourceRef interface {
 	Ref() Ref
+}
+
+// ResourceRelativeURL creates a relative URL (the path) to the resource.
+type ResourceRelativeURL interface {
+	RelativeURL() *url.URL
 }
