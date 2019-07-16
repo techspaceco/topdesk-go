@@ -39,14 +39,6 @@ type Operator struct {
 		Name                  string `json:"name"`
 		ClientReferenceNumber string `json:"clientReferenceNumber"`
 		TimeZone              string `json:"timeZone"`
-		ExtraA                struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"extraA"`
-		ExtraB struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"extraB"`
 	} `json:"branch"`
 	Location struct {
 		ID     string `json:"id"`
@@ -55,14 +47,6 @@ type Operator struct {
 			Name                  string `json:"name"`
 			ClientReferenceNumber string `json:"clientReferenceNumber"`
 			TimeZone              string `json:"timeZone"`
-			ExtraA                struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-			} `json:"extraA"`
-			ExtraB struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
-			} `json:"extraB"`
 		} `json:"branch"`
 		Name string `json:"name"`
 		Room string `json:"room"`
@@ -147,6 +131,60 @@ func (rc RestClient) GetOperator(ctx context.Context, id string) (*Operator, err
 	uri.Path = path.Join(uri.Path, "operators", "id", id)
 
 	response := &Operator{}
+	err := rc.get(ctx, &uri, response)
+	return response, err
+}
+
+type OperatorGroupIterator struct {
+	*ListIterator
+}
+
+func (i OperatorGroupIterator) OperatorGroup() (*OperatorGroup, error) {
+	response := &OperatorGroup{}
+	if err := i.decode(&response); err != nil {
+		return nil, err // Wrap this bad boy.
+	}
+	return response, nil
+}
+
+type OperatorGroup struct {
+	ID        string `json:"id"`
+	Status    string `json:"status"`
+	GroupName string `json:"groupName"`
+	Branch    struct {
+		ID                    string `json:"id"`
+		Name                  string `json:"name"`
+		ClientReferenceNumber string `json:"clientReferenceNumber"`
+		TimeZone              string `json:"timeZone"`
+	} `json:"branch"`
+	Location struct {
+		ID     string `json:"id"`
+		Branch struct {
+			ID                    string `json:"id"`
+			Name                  string `json:"name"`
+			ClientReferenceNumber string `json:"clientReferenceNumber"`
+			TimeZone              string `json:"timeZone"`
+		} `json:"branch"`
+		Name string `json:"name"`
+		Room string `json:"room"`
+	} `json:"location"`
+}
+
+type ListOperatorGroupsRequest struct{}
+
+func (rc RestClient) ListOperatorGroups(ctx context.Context, request *ListOperatorGroupsRequest) (*OperatorGroupIterator, error) {
+	uri := *rc.endpoint
+	uri.Path = path.Join(uri.Path, "operatorgroups")
+
+	it, err := rc.list(ctx, &uri)
+	return &OperatorGroupIterator{it}, err
+}
+
+func (rc RestClient) GetOperatorGroup(ctx context.Context, id string) (*OperatorGroup, error) {
+	uri := *rc.endpoint
+	uri.Path = path.Join(uri.Path, "operatorgroups", "id", id)
+
+	response := &OperatorGroup{}
 	err := rc.get(ctx, &uri, response)
 	return response, err
 }
