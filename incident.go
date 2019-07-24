@@ -282,12 +282,11 @@ type CreateIncidentRequest struct {
 		DynamicName string `json:"dynamicName"`
 		Email       string `json:"email"`
 	} `json:"caller"`
-	BriefDescription         string `json:"briefDescription"`
-	Request                  string `json:"request"`
+	BriefDescription         string `json:"briefDescription,omitempty"`
+	Request                  string `json:"request,omitempty"`
 	Action                   string `json:"action,omitempty"`
 	ActionInvisibleForCaller bool   `json:"actionInvisibleForCaller,omitempty"`
-	ExternalNumber           string `json:"externalNumber"`
-	// TODO: Set the branch, operator group & operator?
+	ExternalNumber           string `json:"externalNumber,omitempty"`
 }
 
 func (rc RestClient) CreateIncident(ctx context.Context, request *CreateIncidentRequest) (*Incident, error) {
@@ -300,4 +299,25 @@ func (rc RestClient) CreateIncident(ctx context.Context, request *CreateIncident
 	}
 
 	return rc.GetIncident(ctx, response.ID)
+}
+
+type UpdateIncidentRequest struct {
+	ID                       string `json:"id"`
+	BriefDescription         string `json:"briefDescription,omitempty"`
+	Request                  string `json:"request,omitempty"`
+	Action                   string `json:"action,omitempty"`
+	ActionInvisibleForCaller bool   `json:"actionInvisibleForCaller,omitempty"`
+	ExternalNumber           string `json:"externalNumber,omitempty"`
+}
+
+func (rc RestClient) UpdateIncident(ctx context.Context, request *UpdateIncidentRequest) (*Incident, error) {
+	uri := *rc.endpoint
+	uri.Path = path.Join(uri.Path, "incidents", "id", request.ID)
+
+	response := &Incident{}
+	if err := rc.update(ctx, &uri, request, response); err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
