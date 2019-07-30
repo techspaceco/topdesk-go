@@ -282,11 +282,12 @@ type CreateIncidentRequest struct {
 		DynamicName string `json:"dynamicName"`
 		Email       string `json:"email"`
 	} `json:"caller"`
-	BriefDescription         string `json:"briefDescription,omitempty"`
-	Request                  string `json:"request,omitempty"`
-	Action                   string `json:"action,omitempty"`
-	ActionInvisibleForCaller bool   `json:"actionInvisibleForCaller,omitempty"`
-	ExternalNumber           string `json:"externalNumber,omitempty"`
+	Status                   IncidentStatus `json:"status,omitempty"`
+	BriefDescription         string         `json:"briefDescription,omitempty"`
+	Request                  string         `json:"request,omitempty"`
+	Action                   string         `json:"action,omitempty"`
+	ActionInvisibleForCaller bool           `json:"actionInvisibleForCaller,omitempty"`
+	ExternalNumber           string         `json:"externalNumber,omitempty"`
 }
 
 func (rc RestClient) CreateIncident(ctx context.Context, request *CreateIncidentRequest) (*Incident, error) {
@@ -302,12 +303,13 @@ func (rc RestClient) CreateIncident(ctx context.Context, request *CreateIncident
 }
 
 type UpdateIncidentRequest struct {
-	ID                       string `json:"id"`
-	BriefDescription         string `json:"briefDescription,omitempty"`
-	Request                  string `json:"request,omitempty"`
-	Action                   string `json:"action,omitempty"`
-	ActionInvisibleForCaller bool   `json:"actionInvisibleForCaller,omitempty"`
-	ExternalNumber           string `json:"externalNumber,omitempty"`
+	ID                       string         `json:"id"`
+	Status                   IncidentStatus `json:"status,omitempty"`
+	BriefDescription         string         `json:"briefDescription,omitempty"`
+	Request                  string         `json:"request,omitempty"`
+	Action                   string         `json:"action,omitempty"`
+	ActionInvisibleForCaller bool           `json:"actionInvisibleForCaller,omitempty"`
+	ExternalNumber           string         `json:"externalNumber,omitempty"`
 }
 
 func (rc RestClient) UpdateIncident(ctx context.Context, request *UpdateIncidentRequest) (*Incident, error) {
